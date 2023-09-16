@@ -1,9 +1,8 @@
 package com.example.demo.services;
 
 import com.example.demo.entity.Question;
+import com.example.demo.exceptions.MathQuestionNotAllowed;
 import com.example.demo.exceptions.NoQuestionsException;
-import com.example.demo.repository.JavaQuestionRepository;
-import com.example.demo.repository.MathQuestionsRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -11,49 +10,58 @@ import java.util.Random;
 
 @Service
 public class MathQuestionService implements QuestionService {
-    private final Random random = new Random();
-    private final MathQuestionsRepository repository;
 
-    public MathQuestionService(MathQuestionsRepository repository) {
-        this.repository = repository;
-    }
+    private final Random random = new Random();
 
     @Override
     public Question add(String question, String answer) {
-        return repository.add(question, answer);
+        throw new MathQuestionNotAllowed();
     }
 
     @Override
     public Question add(Question question) {
-        return repository.add(question);
+        throw new MathQuestionNotAllowed();
     }
 
     @Override
     public Question remove(Question question) {
-        return repository.remove(question);
+        throw new MathQuestionNotAllowed();
     }
 
     @Override
     public Collection<Question> getAll() {
-        return repository.getAll();
+        throw new MathQuestionNotAllowed();
     }
 
     @Override
     public Question getRandomQuestion() {
-        var questions = repository.getAll();
-        if (questions.isEmpty()) {
-            throw new NoQuestionsException();
+        var arg1 = random.nextInt(1000);
+        var arg2 = random.nextInt(500) + 100;
+
+        StringBuilder result = new StringBuilder();
+        result.append(arg1);
+        double mathResult = generateOperation(result, arg1, arg2);
+        result.append(arg2);
+        return new Question(result.toString(), String.valueOf(mathResult));
+    }
+
+    // POSTMAN
+    private double generateOperation(StringBuilder result, int arg1, int arg2) {
+        switch (random.nextInt(4)) {
+            case 0:
+                result.append(" + ");
+                return arg1 + arg2;
+            case 1:
+                result.append(" - ");
+                return arg1 - arg2;
+            case 2:
+                result.append(" * ");
+                return arg1 * arg2;
+            case 3:
+                result.append(" / ");
+                return (double) arg1 / arg2;
+            default:
+                throw new UnsupportedOperationException("Unknown operation");
         }
-        var index = random.nextInt(questions.size());
-        var it = questions.iterator();
-        int i = 0;
-        while (it.hasNext()) {
-            Question q = it.next();
-            if (i == index) {
-                return q;
-            }
-            i++;
-        }
-        return null;
     }
 }
